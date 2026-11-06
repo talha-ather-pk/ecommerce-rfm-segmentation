@@ -1,0 +1,4 @@
+expression DataFolder = "C:\Users\DELL\upwork-profile\data-portfolio\data-portfolio\02-ecommerce-rfm-segmentation\data_clean\" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
+	lineageTag: ed00f0a5-6a32-5e5c-8bf0-e77d77b62a92
+
+	annotation PBI_ResultType = Text

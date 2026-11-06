@@ -1,0 +1,8 @@
+﻿__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+.vercel
+~$*
+# rebuilt in seconds by scripts/clean_and_load.py
+data_clean/harbor_pine.db

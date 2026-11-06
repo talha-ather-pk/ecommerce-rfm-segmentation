@@ -1,0 +1,165 @@
+table customer_rfm
+	lineageTag: f9b55ee3-d8e3-5e0e-9c74-a6cee4623e91
+
+	measure 'Scored Customers' = COUNTROWS ( customer_rfm )
+		formatString: #,0
+		displayFolder: RFM
+		lineageTag: 955338f0-6c7c-55e8-9c26-15ce137655db
+
+	measure 'Lifetime Revenue' = SUM ( customer_rfm[monetary] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: RFM
+		lineageTag: 38543580-7a1c-5a18-bf69-6494a8ddadca
+
+	measure '% of Customers' = DIVIDE ( [Scored Customers], CALCULATE ( [Scored Customers], ALL ( customer_rfm ) ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: RFM
+		lineageTag: c0f13afe-9c05-5dd3-b99a-fbca1c58ab2c
+
+	measure '% of Revenue' = DIVIDE ( [Lifetime Revenue], CALCULATE ( [Lifetime Revenue], ALL ( customer_rfm ) ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: RFM
+		lineageTag: 80cf3f3b-7395-5e48-af0e-ef260ad46349
+
+	measure 'Avg Recency Days' = AVERAGE ( customer_rfm[recency_days] )
+		formatString: #,0
+		displayFolder: RFM
+		lineageTag: f479e686-83c9-5fcd-8f9d-736763b8f53a
+
+	measure 'Avg Orders per Customer' = AVERAGE ( customer_rfm[frequency] )
+		formatString: #,0.00
+		displayFolder: RFM
+		lineageTag: a8db3324-e3c5-5013-b4e2-3b9b82579a1d
+
+	measure 'Avg Lifetime Spend' = DIVIDE ( [Lifetime Revenue], [Scored Customers] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: RFM
+		lineageTag: eec2b95b-3b81-5eb2-842d-4b2733ef28cd
+
+	measure 'Top Segments Revenue Share' = CALCULATE ( [% of Revenue], customer_rfm[segment] IN { "Champions", "Loyal" } )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: RFM
+		lineageTag: acf24c10-beb2-5e0b-a42b-a85dffd66e4f
+
+	column customer_id
+		dataType: string
+		isHidden
+		lineageTag: 649b3e58-bd34-5f21-af9a-c97d2bcb4bd2
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column recency_days
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 40a43721-fd1e-555f-b833-4f2a80044e0d
+		summarizeBy: none
+		sourceColumn: recency_days
+
+		annotation SummarizationSetBy = Automatic
+
+	column frequency
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d6447b93-9ac4-5baa-a4c4-f4cbe9251863
+		summarizeBy: none
+		sourceColumn: frequency
+
+		annotation SummarizationSetBy = Automatic
+
+	column monetary
+		dataType: double
+		isHidden
+		lineageTag: efbd8267-afe8-5be7-b710-152339a906c6
+		summarizeBy: sum
+		sourceColumn: monetary
+
+		annotation SummarizationSetBy = Automatic
+
+	column first_order
+		dataType: string
+		isHidden
+		lineageTag: c0f0b94b-6c3b-5b95-92fe-15f87f108465
+		summarizeBy: none
+		sourceColumn: first_order
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_order
+		dataType: string
+		isHidden
+		lineageTag: 819e7f47-9e65-5604-a9f0-6677220c883d
+		summarizeBy: none
+		sourceColumn: last_order
+
+		annotation SummarizationSetBy = Automatic
+
+	column r_score
+		dataType: int64
+		formatString: 0
+		lineageTag: 07812b4d-eb63-56c7-a705-89574c1be0ad
+		summarizeBy: none
+		sourceColumn: r_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column f_score
+		dataType: int64
+		formatString: 0
+		lineageTag: 1d6bd291-5f68-5b34-9008-cf8f7e01919e
+		summarizeBy: none
+		sourceColumn: f_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column m_score
+		dataType: int64
+		formatString: 0
+		lineageTag: 14786283-e4d8-5199-b2b9-72ee8831796e
+		summarizeBy: none
+		sourceColumn: m_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column rfm_code
+		dataType: string
+		lineageTag: 97620fb2-1173-51b3-9aef-6ebf83a7847b
+		summarizeBy: none
+		sourceColumn: rfm_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column segment_order
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 40ee1c83-1a11-5b24-85e9-66195cd5a9e1
+		summarizeBy: none
+		sourceColumn: segment_order
+
+		annotation SummarizationSetBy = Automatic
+
+	column segment
+		dataType: string
+		sortByColumn: segment_order
+		lineageTag: ec49e8f1-1c31-58d8-aa47-eff931f30720
+		summarizeBy: none
+		sourceColumn: segment
+
+		annotation SummarizationSetBy = Automatic
+
+	partition customer_rfm = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "customer_rfm.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Blanks = Table.TransformColumns(Promoted, {}, each if _ = "" then null else _),
+				    Typed = Table.TransformColumnTypes(Blanks, {{"customer_id", type text}, {"recency_days", Int64.Type}, {"frequency", Int64.Type}, {"monetary", type number}, {"first_order", type text}, {"last_order", type text}, {"r_score", Int64.Type}, {"f_score", Int64.Type}, {"m_score", Int64.Type}, {"rfm_code", type text}, {"segment_order", Int64.Type}, {"segment", type text}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "HarborPine"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "c0a7ca73-c56a-5857-82fc-e085e52a140e"
+  }
+}

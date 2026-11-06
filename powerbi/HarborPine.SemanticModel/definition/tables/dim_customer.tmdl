@@ -1,0 +1,74 @@
+table dim_customer
+	lineageTag: 54884e43-0eff-5418-ae98-e293ad7e72b5
+
+	column customer_id
+		dataType: string
+		isHidden
+		lineageTag: c95d3f88-416d-5282-8674-ae1c690a4960
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column city
+		dataType: string
+		lineageTag: 07cdda77-0c36-5b1a-baf5-233c5a8b7c39
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	column state_code
+		dataType: string
+		lineageTag: 47010ab5-498c-5ca0-ab80-b3a38e88127e
+		summarizeBy: none
+		sourceColumn: state_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column state_name
+		dataType: string
+		dataCategory: StateOrProvince
+		lineageTag: 83204203-45d3-5c5a-9099-f0a5772cbc9d
+		summarizeBy: none
+		sourceColumn: state_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column region
+		dataType: string
+		lineageTag: 516224aa-51c6-525a-a09d-d896abf04b58
+		summarizeBy: none
+		sourceColumn: region
+
+		annotation SummarizationSetBy = Automatic
+
+	column acquisition_channel
+		dataType: string
+		lineageTag: 763edf46-610e-514c-a203-bf106e5e24b7
+		summarizeBy: none
+		sourceColumn: acquisition_channel
+
+		annotation SummarizationSetBy = Automatic
+
+	column signup_date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 3474bb67-6150-5d58-9ee1-c32e3a458c34
+		summarizeBy: none
+		sourceColumn: signup_date
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_customer = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "dim_customer.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Blanks = Table.TransformColumns(Promoted, {}, each if _ = "" then null else _),
+				    Typed = Table.TransformColumnTypes(Blanks, {{"customer_id", type text}, {"city", type text}, {"state_code", type text}, {"state_name", type text}, {"region", type text}, {"acquisition_channel", type text}, {"signup_date", type date}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

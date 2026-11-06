@@ -1,0 +1,27 @@
+table,check,rows_affected,action
+customers,rows loaded,30000,none
+products,rows loaded,827,none
+orders,rows loaded,45455,none
+order_items,rows loaded,71099,none
+payments,rows loaded,47385,none
+reviews,rows loaded,36051,none
+customers,state given as full name or lower case,2647,standardised to 2-letter code
+customers,city with extra spaces or wrong case,1490,trimmed and title-cased
+customers,missing acquisition_channel,565,set to 'Unknown'
+customers,duplicate customer_id,0,checked
+products,category in wrong case,19,mapped to standard names
+products,missing weight_kg,14,filled with category median
+orders,unparseable purchase timestamp,0,checked
+orders,delivered before purchase,0,checked
+orders,delivered orders missing delivery date,0,checked
+orders,delivered after the promised date,5773,"kept, flagged is_late with delay_days"
+orders,canceled orders,987,"kept, excluded from revenue and RFM"
+orders,orders still in transit at 31 Dec 2025,643,"kept, counted as revenue, no delivery metrics"
+order_items,duplicated export rows,283,dropped
+order_items,"duplicate (order_id, order_item_id)",0,checked
+order_items,product_id not in products,0,checked
+orders,order_total differs from items + shipping (> $0.05),0,checked
+payments,payments do not add up to order_total,40,"kept, flagged payment_mismatch for finance follow-up"
+reviews,duplicated export rows,120,dropped
+reviews,more than one review per order,0,checked
+reviews,review without a comment,7831,kept (score only)
