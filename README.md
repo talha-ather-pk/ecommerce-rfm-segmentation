@@ -4,7 +4,7 @@
 
 Harbor & Pine is a (fictional) US online home & lifestyle store with three years of orders (2023 to 2025): 30,000 customers, 45,455 orders, $4.69M in revenue. Management asked two questions: **which customers bring repeat revenue, and what do late deliveries cost us?**
 
-**Live summary page:** _see below once deployed_
+**Live summary page:** https://ecommerce-rfm-segmentation.vercel.app (source in [`site/index.html`](site/index.html))
 
 ![Power BI dashboard: Customer Segments](images/dashboard_segments.png)
 
