@@ -1,68 +1,98 @@
 table dim_date
 	dataCategory: Time
-	lineageTag: b593ffee-20fa-5f23-9d47-383921db1095
+	lineageTag: 5c4bf585-67d9-5b3b-ae8a-16fcca0b0f91
 
 	column date
 		dataType: dateTime
-		formatString: Short Date
 		isKey
-		lineageTag: a5e74d89-3815-5bdf-9369-ee7637de2775
+		formatString: dd mmm yyyy
+		lineageTag: 5e0980c3-12d6-5192-ae2f-d2bbc5dcd702
 		summarizeBy: none
 		sourceColumn: date
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column year
 		dataType: int64
 		formatString: 0
-		lineageTag: 79d74e36-964e-545d-9e6f-1e0f15430239
+		lineageTag: ebb7c12e-a353-53ea-8570-3c7a703718c5
 		summarizeBy: none
 		sourceColumn: year
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column quarter
 		dataType: string
-		lineageTag: 0f165e52-c62b-53ec-af40-6df4b6940252
+		lineageTag: 03bea1d5-a4e9-5cc4-ade4-8dbcd1a26e17
 		summarizeBy: none
 		sourceColumn: quarter
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column month_num
 		dataType: int64
 		isHidden
 		formatString: 0
-		lineageTag: 36a53c50-a45c-5f16-b660-593477964443
+		lineageTag: d05a22cd-bf61-5fd6-927f-29f371c86dab
 		summarizeBy: none
 		sourceColumn: month_num
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column month
 		dataType: string
 		sortByColumn: month_num
-		lineageTag: b35322b7-79c1-5882-9562-ca7fa84b20b4
+		lineageTag: 3cd7f96e-eb39-5c47-b55d-4da1a740f618
 		summarizeBy: none
 		sourceColumn: month
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column year_month
 		dataType: string
-		lineageTag: d04f3cc9-38d9-5e4e-91f6-b32031f70bd0
+		isHidden
+		lineageTag: 6dad56b1-6bde-55f3-90ef-875d13ae4305
 		summarizeBy: none
 		sourceColumn: year_month
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column weekday
 		dataType: string
-		lineageTag: 051dc40d-7950-5896-a0c6-83a832614a62
+		isHidden
+		lineageTag: 52189859-d000-5891-a459-703e96330963
 		summarizeBy: none
 		sourceColumn: weekday
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
+
+	column month_start
+		dataType: dateTime
+		formatString: mmm yyyy
+		lineageTag: 3c4e1a40-1b00-5bc4-9529-792602d95623
+		summarizeBy: none
+		sourceColumn: month_start
+
+		annotation SummarizationSetBy = User
+
+	column month_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b3d57840-e6d3-509a-8415-1517f531ca9d
+		summarizeBy: none
+		sourceColumn: month_key
+
+		annotation SummarizationSetBy = User
+
+	column month_label
+		dataType: string
+		sortByColumn: month_key
+		lineageTag: 55ca843f-79c0-500a-b7d6-8fb1461423a7
+		summarizeBy: none
+		sourceColumn: month_label
+
+		annotation SummarizationSetBy = User
 
 	partition dim_date = m
 		mode: import
@@ -71,8 +101,11 @@ table dim_date
 				    Source = Csv.Document(File.Contents(DataFolder & "dim_date.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
 				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
 				    Blanks = Table.TransformColumns(Promoted, {}, each if _ = "" then null else _),
-				    Typed = Table.TransformColumnTypes(Blanks, {{"date", type date}, {"year", Int64.Type}, {"quarter", type text}, {"month_num", Int64.Type}, {"month", type text}, {"year_month", type text}, {"weekday", type text}}, "en-US")
+				    Typed = Table.TransformColumnTypes(Blanks, {{"date", type date}, {"year", Int64.Type}, {"quarter", type text}, {"month_num", Int64.Type}, {"month", type text}, {"year_month", type text}, {"weekday", type text}}, "en-US"),
+				    MonthStart = Table.AddColumn(Typed, "month_start", each Date.StartOfMonth([date]), type date),
+				    MonthKey = Table.AddColumn(MonthStart, "month_key", each Date.Year([date]) * 100 + Date.Month([date]), Int64.Type),
+				    MonthLabel = Table.AddColumn(MonthKey, "month_label", each Date.ToText([date], "MMM yyyy", "en-US"), type text)
 				in
-				    Typed
+				    MonthLabel
 
 	annotation PBI_ResultType = Table

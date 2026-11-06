@@ -1,297 +1,206 @@
 table fact_orders
-	lineageTag: fb97b297-64da-585b-9dad-0e9a6dbd8fc7
-
-	measure Revenue = CALCULATE ( SUM ( fact_orders[order_total] ), fact_orders[order_status] <> "canceled" )
-		formatString: \$#,0;(\$#,0);\$#,0
-		displayFolder: Sales
-		lineageTag: 52aa227e-db4a-5ce9-96d7-e5803ae551a3
-
-	measure Orders = CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[order_status] <> "canceled" )
-		formatString: #,0
-		displayFolder: Sales
-		lineageTag: b30d2f25-aa74-534c-a5e3-4155475001d2
-
-	measure Customers = CALCULATE ( DISTINCTCOUNT ( fact_orders[customer_id] ), fact_orders[order_status] <> "canceled" )
-		formatString: #,0
-		displayFolder: Sales
-		lineageTag: f537f784-b753-5daf-838f-b40703ef8e20
-
-	measure 'Avg Order Value' = DIVIDE ( [Revenue], [Orders] )
-		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
-		displayFolder: Sales
-		lineageTag: 01a11e48-db1b-5859-93b9-21a5293864bf
-
-	measure 'Revenue PY' = CALCULATE ( [Revenue], SAMEPERIODLASTYEAR ( dim_date[date] ) )
-		formatString: \$#,0;(\$#,0);\$#,0
-		displayFolder: Sales
-		lineageTag: 29b29d46-31f2-5b93-924f-87e60c7dbaa8
-
-	measure 'Revenue YoY %' = DIVIDE ( [Revenue] - [Revenue PY], [Revenue PY] )
-		formatString: 0.0%;-0.0%;0.0%
-		displayFolder: Sales
-		lineageTag: de79155e-2f5e-5ada-a854-d75772a74ac6
-
-	measure 'Canceled Orders' = CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[order_status] = "canceled" )
-		formatString: #,0
-		displayFolder: Sales
-		lineageTag: 707f2ae4-810d-5ee5-ab39-60407e1b0402
-
-	measure 'Repeat Customers' = COUNTROWS ( FILTER ( VALUES ( fact_orders[customer_id] ), [Orders] > 1 ) )
-		formatString: #,0
-		displayFolder: Customers
-		lineageTag: f5735121-1e89-52b9-82ac-490f69fa5395
-
-	measure 'Repeat Rate %' = DIVIDE ( [Repeat Customers], [Customers] )
-		formatString: 0.0%;-0.0%;0.0%
-		displayFolder: Customers
-		lineageTag: 7ec73915-151c-5eb8-9117-c203b4e8eccb
-
-	measure 'Came Back %' = VAR FirstOrders = CALCULATETABLE ( fact_orders, fact_orders[is_first_order] = TRUE (), fact_orders[order_status] = "delivered", fact_orders[order_date] < DATE ( 2025, 7, 1 ) ) RETURN DIVIDE ( COUNTROWS ( FILTER ( FirstOrders, fact_orders[customer_has_repeat] = TRUE () ) ), COUNTROWS ( FirstOrders ) )
-		formatString: 0.0%;-0.0%;0.0%
-		displayFolder: Customers
-		lineageTag: 4ea45c98-d694-560d-bf04-90248765964a
-
-	measure 'Delivered Orders' = CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[order_status] = "delivered" )
-		formatString: #,0
-		displayFolder: Delivery
-		lineageTag: 113923ee-2b5e-5616-8413-97c957ab0f64
-
-	measure 'Late Orders' = CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[order_status] = "delivered", fact_orders[is_late] = TRUE () )
-		formatString: #,0
-		displayFolder: Delivery
-		lineageTag: aa84b383-b90e-5f16-a34a-8fda3f335c4f
-
-	measure 'Late Rate %' = DIVIDE ( [Late Orders], [Delivered Orders] )
-		formatString: 0.0%;-0.0%;0.0%
-		displayFolder: Delivery
-		lineageTag: 447d2d91-ec2e-5777-8e5c-5fbb69874d59
-
-	measure 'Avg Delivery Days' = CALCULATE ( AVERAGE ( fact_orders[delivery_days] ), fact_orders[order_status] = "delivered" )
-		formatString: #,0.0
-		displayFolder: Delivery
-		lineageTag: 10bf1d20-aa20-5da7-b4c5-82336cdb0b30
-
-	measure 'Avg Review Score' = AVERAGE ( fact_orders[review_score] )
-		formatString: #,0.00
-		displayFolder: Reviews
-		lineageTag: df1fa8f1-51e4-5f99-b0d1-711efc2e1071
-
-	measure 'Low Reviews %' = DIVIDE ( CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[review_score] <= 2, NOT ISBLANK ( fact_orders[review_score] ) ), CALCULATE ( COUNTROWS ( fact_orders ), NOT ISBLANK ( fact_orders[review_score] ) ) )
-		formatString: 0.0%;-0.0%;0.0%
-		displayFolder: Reviews
-		lineageTag: 50394b09-8e1b-5f6a-a3d7-49d6b9796a59
-
-	measure 'Payment Mismatches' = CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[payment_mismatch] = TRUE () )
-		formatString: #,0
-		displayFolder: Finance
-		lineageTag: 0492f7bf-9094-5fb5-b55d-cd75a6a91d2b
-
-	measure 'Review Color' = SWITCH ( TRUE (), [Avg Review Score] < 3, "#C0392B", [Avg Review Score] < 4, "#E67E22", "#2563EB" )
-		displayFolder: Formatting
-		lineageTag: 82a06d90-9001-5551-9a7e-01310c53120b
-
-	measure 'Came Back Color' = SWITCH ( TRUE (), [Came Back %] < 0.15, "#C0392B", [Came Back %] < 0.27, "#E67E22", "#2563EB" )
-		displayFolder: Formatting
-		lineageTag: add5f915-3ec8-56f2-8860-327e4309fe7a
-
-	measure 'Late Color' = SWITCH ( TRUE (), [Late Rate %] >= 0.2, "#C0392B", [Late Rate %] >= 0.12, "#E67E22", "#2563EB" )
-		displayFolder: Formatting
-		lineageTag: 8135abb0-7460-551b-9d2e-93519c173b47
+	lineageTag: acfe3f5b-9538-5579-9440-67f70149a5ee
 
 	column order_id
 		dataType: string
-		lineageTag: bf25a02e-4775-56dc-988b-42b3a9cf38f1
+		lineageTag: 8b684c5e-91d2-51e7-a1c8-29a99f54743f
 		summarizeBy: none
 		sourceColumn: order_id
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column customer_id
 		dataType: string
 		isHidden
-		lineageTag: 9a813590-a46c-580f-bfe8-d625c9c01a04
+		lineageTag: c3ab4db9-3d99-5ff1-9957-c67475603213
 		summarizeBy: none
 		sourceColumn: customer_id
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column order_date
 		dataType: dateTime
-		formatString: Short Date
-		lineageTag: fd5b6be5-a1f3-55bd-9ba4-0f545ad49c57
+		isHidden
+		formatString: dd mmm yyyy
+		lineageTag: e3e245d4-d51a-531f-baa1-371062aa62e8
 		summarizeBy: none
 		sourceColumn: order_date
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column order_status
 		dataType: string
-		lineageTag: 6d187f02-dae6-5961-bda2-b0440ebf36a5
+		lineageTag: 289ee27d-1bf0-547f-9f64-484975dbafa1
 		summarizeBy: none
 		sourceColumn: order_status
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column carrier
 		dataType: string
-		lineageTag: f745505d-808c-5d74-bc05-f438d46fd656
+		lineageTag: 3e6fa3d7-c972-5f4b-b9d7-1da48bb896bf
 		summarizeBy: none
 		sourceColumn: carrier
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column payment_type
 		dataType: string
-		lineageTag: 55050160-ec3b-5623-8037-fa11cf82b5f1
+		lineageTag: c9543b3a-b973-5b83-a83a-4dd892229199
 		summarizeBy: none
 		sourceColumn: payment_type
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column order_total
 		dataType: double
 		isHidden
-		lineageTag: 08c16b43-f0b1-56dd-9d4a-374ba0534c72
-		summarizeBy: sum
+		lineageTag: 2bcb234e-c51b-5389-8767-2bd144a52cd2
+		summarizeBy: none
 		sourceColumn: order_total
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column shipping_fee
 		dataType: double
 		isHidden
-		lineageTag: da963853-43cb-5621-9355-0d93073d50bd
-		summarizeBy: sum
+		lineageTag: e88d7eea-ef29-53e8-8822-6efa7128cbef
+		summarizeBy: none
 		sourceColumn: shipping_fee
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column items_revenue
 		dataType: double
 		isHidden
-		lineageTag: 589444b3-9ea7-5f8d-a3a5-1f56cdc042d7
-		summarizeBy: sum
+		lineageTag: 4f8c488b-7f20-54b6-b200-050e659ae286
+		summarizeBy: none
 		sourceColumn: items_revenue
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column items_margin
 		dataType: double
 		isHidden
-		lineageTag: 0fb8f0f5-3bb1-5401-9e87-f6782b1d6f71
-		summarizeBy: sum
+		lineageTag: 838f1eac-7f4c-5f8a-ae0c-51e2dd709488
+		summarizeBy: none
 		sourceColumn: items_margin
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column items_count
 		dataType: int64
 		isHidden
 		formatString: 0
-		lineageTag: 51f2e72e-9232-5d59-97d2-5677b54e485c
+		lineageTag: 50f71cd3-3e39-548d-860a-b7a1e95e575a
 		summarizeBy: none
 		sourceColumn: items_count
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column max_discount_pct
 		dataType: int64
 		isHidden
 		formatString: 0
-		lineageTag: 3f9c0271-f178-53f3-bee7-7970c31b2ffb
+		lineageTag: eceed05f-e91d-5d98-b9b7-e247d7fc9621
 		summarizeBy: none
 		sourceColumn: max_discount_pct
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column delivery_days
 		dataType: double
 		isHidden
-		lineageTag: 8a35b390-6089-5bed-8d38-a9c186b8b389
-		summarizeBy: sum
+		lineageTag: 55cd622f-5cdb-5b8e-be40-26067a11bb38
+		summarizeBy: none
 		sourceColumn: delivery_days
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column delay_days
 		dataType: int64
 		isHidden
 		formatString: 0
-		lineageTag: bcd9c3af-d954-5129-ac3e-170e6611b8d8
+		lineageTag: cf8515b7-6ad6-512a-9c97-c3e76ce7a5de
 		summarizeBy: none
 		sourceColumn: delay_days
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column is_late
 		dataType: boolean
-		lineageTag: 0fc63255-ed12-58d3-a138-51d8c283ec2a
+		isHidden
+		lineageTag: 163837fd-d165-5b15-a80b-07dbb8019d05
 		summarizeBy: none
 		sourceColumn: is_late
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column delivery_band
 		dataType: string
 		sortByColumn: delivery_band_order
-		lineageTag: 4c3e3498-e0b2-50fe-9dfb-c1830b8f1635
+		lineageTag: f50cb418-323b-572a-92dd-3dde812c01ce
 		summarizeBy: none
 		sourceColumn: delivery_band
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column delivery_band_order
 		dataType: int64
 		isHidden
 		formatString: 0
-		lineageTag: 0fde4aa5-29cf-5ea4-8373-c873855f5ec8
+		lineageTag: 6e514463-672f-50fc-8b5b-7f88c5f57a46
 		summarizeBy: none
 		sourceColumn: delivery_band_order
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column review_score
 		dataType: int64
+		isHidden
 		formatString: 0
-		lineageTag: 4fe03827-6a10-540e-801e-cad369580db5
+		lineageTag: d18675a4-f268-5fe3-823e-085725bb2d16
 		summarizeBy: none
 		sourceColumn: review_score
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column customer_order_number
 		dataType: int64
 		isHidden
 		formatString: 0
-		lineageTag: 6d8004d1-1e16-5a40-998e-ad14a85b2012
+		lineageTag: caa0fd38-9a43-5aa4-b0f8-67c84c1de6c4
 		summarizeBy: none
 		sourceColumn: customer_order_number
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column is_first_order
 		dataType: boolean
-		lineageTag: d8843373-d89b-5ee0-8570-f79290ba2dbc
+		isHidden
+		lineageTag: d9251a00-68fc-5816-9ef9-6f2c65f92a14
 		summarizeBy: none
 		sourceColumn: is_first_order
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column customer_has_repeat
 		dataType: boolean
-		lineageTag: 70111934-c9ee-5384-b04d-c2bc10434e99
+		isHidden
+		lineageTag: 507fc0cb-aa36-5f56-81b5-97f1d1573c23
 		summarizeBy: none
 		sourceColumn: customer_has_repeat
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column payment_mismatch
 		dataType: boolean
-		lineageTag: 2e7c58ed-d339-57bf-82a4-cfb8a46642ec
+		isHidden
+		lineageTag: b213d722-9893-5fbf-9a30-edb2fb1ee90b
 		summarizeBy: none
 		sourceColumn: payment_mismatch
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	partition fact_orders = m
 		mode: import

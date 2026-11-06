@@ -1,4 +1,18 @@
 expression DataFolder = "C:\Users\DELL\upwork-profile\data-portfolio\data-portfolio\02-ecommerce-rfm-segmentation\data_clean\" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
-	lineageTag: ed00f0a5-6a32-5e5c-8bf0-e77d77b62a92
+	lineageTag: 68676234-a568-59e5-9ca4-ea92108b2bae
 
 	annotation PBI_ResultType = Text
+
+/// RFM scores from sql/analysis.sql (query 05); merged into dim_customer, not loaded on its own
+expression RFM_Staging =
+		let
+		    Source = Csv.Document(File.Contents(DataFolder & "customer_rfm.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+		    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+		    Blanks = Table.TransformColumns(Promoted, {}, each if _ = "" then null else _),
+		    Typed = Table.TransformColumnTypes(Blanks, {{"customer_id", type text}, {"recency_days", Int64.Type}, {"frequency", Int64.Type}, {"monetary", type number}, {"r_score", Int64.Type}, {"f_score", Int64.Type}, {"m_score", Int64.Type}, {"rfm_code", type text}, {"segment_order", Int64.Type}, {"segment", type text}}, "en-US"),
+		    Kept = Table.SelectColumns(Typed, {"customer_id", "recency_days", "frequency", "monetary", "r_score", "f_score", "m_score", "rfm_code", "segment_order", "segment"})
+		in
+		    Kept
+	lineageTag: 8de20318-d6e5-56e5-9632-065cefb63209
+
+	annotation PBI_ResultType = Table

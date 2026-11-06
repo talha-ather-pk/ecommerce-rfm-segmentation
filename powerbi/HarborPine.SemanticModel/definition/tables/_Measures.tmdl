@@ -1,0 +1,605 @@
+table _Measures
+	lineageTag: 0f54fd1b-9e1d-5ff9-b098-aa783e7b8ba3
+
+	measure Revenue = CALCULATE ( SUM ( fact_orders[order_total] ), fact_orders[order_status] <> "canceled" )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 1 Sales
+		lineageTag: 21f885b0-6a64-5376-8384-6d290e6f6dd0
+
+	measure Orders = CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[order_status] <> "canceled" )
+		formatString: #,0
+		displayFolder: 1 Sales
+		lineageTag: 854e1c7f-3de8-544e-b4f9-99d6ded2ad03
+
+	measure Customers = CALCULATE ( DISTINCTCOUNT ( fact_orders[customer_id] ), fact_orders[order_status] <> "canceled" )
+		formatString: #,0
+		displayFolder: 1 Sales
+		lineageTag: ad683f85-02d0-55af-ae28-4967a589b528
+
+	measure 'Avg Order Value' = DIVIDE ( [Revenue], [Orders] )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 1 Sales
+		lineageTag: 1a0df751-d4a8-58ba-b438-0623ca2ba101
+
+	measure 'Canceled Orders' = CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[order_status] = "canceled" )
+		formatString: #,0
+		displayFolder: 1 Sales
+		lineageTag: 095f3382-c3eb-5ad1-9206-e64134c07083
+
+	measure 'Revenue PY' = CALCULATE ( [Revenue], SAMEPERIODLASTYEAR ( dim_date[date] ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 1 Sales
+		lineageTag: 65533b53-5c0c-59b3-b3ca-fe1dc572f2a5
+
+	measure 'Revenue YoY %' = DIVIDE ( [Revenue] - [Revenue PY], [Revenue PY] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 1 Sales
+		lineageTag: 4a7a1b64-e1dd-5cab-9ed9-7234c63ec020
+
+	measure 'Revenue YTD' = TOTALYTD ( [Revenue], dim_date[date] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 1 Sales
+		lineageTag: ad7b5bc8-8b29-5f3a-bd00-eee0d4226854
+
+	measure 'Revenue Rolling 3M' = CALCULATE ( [Revenue], DATESINPERIOD ( dim_date[date], MAX ( dim_date[date] ), -3, MONTH ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 1 Sales
+		lineageTag: bd4e506d-a22f-5ffc-b093-7b5650c502a2
+
+	measure 'Revenue Share of Total' = DIVIDE ( [Revenue], CALCULATE ( [Revenue], REMOVEFILTERS ( dim_customer[region] ) ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 1 Sales
+		lineageTag: 9705d82b-db1d-51b5-9fd9-6040f413207c
+
+	measure 'Repeat Customers' = COUNTROWS ( FILTER ( VALUES ( fact_orders[customer_id] ), [Orders] > 1 ) )
+		formatString: #,0
+		displayFolder: 2 Customers
+		lineageTag: 542018ef-9c4c-57ca-80c8-a4a621c0d3f8
+
+	measure 'Repeat Rate %' = DIVIDE ( [Repeat Customers], [Customers] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 2 Customers
+		lineageTag: 973906ff-53ff-552c-a86f-5ff054c386d4
+
+	measure 'Came Back %' = VAR FirstOrders = CALCULATETABLE ( fact_orders, fact_orders[is_first_order] = TRUE (), fact_orders[order_status] = "delivered", fact_orders[order_date] < DATE ( 2025, 7, 1 ) ) RETURN DIVIDE ( COUNTROWS ( FILTER ( FirstOrders, fact_orders[customer_has_repeat] = TRUE () ) ), COUNTROWS ( FirstOrders ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 2 Customers
+		lineageTag: 7e49f5a3-4bbc-526a-ab01-5785cd5b157e
+
+	measure 'Scored Customers' = CALCULATE ( COUNTROWS ( dim_customer ), dim_customer[segment_order] <= 8 )
+		formatString: #,0
+		displayFolder: 3 RFM
+		lineageTag: e4a29708-a1e4-5691-ba85-965c97810547
+
+	measure 'Lifetime Revenue' = CALCULATE ( SUM ( dim_customer[monetary] ), dim_customer[segment_order] <= 8 )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 3 RFM
+		lineageTag: ee8b7c4b-96e7-58ea-8493-88492796c678
+
+	measure '% of Customers' = DIVIDE ( [Scored Customers], CALCULATE ( [Scored Customers], REMOVEFILTERS ( dim_customer[segment], dim_customer[segment_order] ) ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 3 RFM
+		lineageTag: b4f0a242-271e-5a6f-82ee-d5fb1d1a7e48
+
+	measure '% of Revenue' = DIVIDE ( [Lifetime Revenue], CALCULATE ( [Lifetime Revenue], REMOVEFILTERS ( dim_customer[segment], dim_customer[segment_order] ) ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 3 RFM
+		lineageTag: ab960922-8bc4-5a1d-be75-1d5c39cff605
+
+	measure 'Avg Recency Days' = CALCULATE ( AVERAGE ( dim_customer[recency_days] ), dim_customer[segment_order] <= 8 )
+		formatString: #,0
+		displayFolder: 3 RFM
+		lineageTag: c8015745-84b1-5afb-922f-01a86b676a2e
+
+	measure 'Avg Orders per Customer' = CALCULATE ( AVERAGE ( dim_customer[frequency] ), dim_customer[segment_order] <= 8 )
+		formatString: #,0.00
+		displayFolder: 3 RFM
+		lineageTag: e127d221-7d9d-542f-baf2-678cff8c3575
+
+	measure 'Avg Lifetime Spend' = DIVIDE ( [Lifetime Revenue], [Scored Customers] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 3 RFM
+		lineageTag: aad1de7e-c503-50c8-9bdb-0adf8965e017
+
+	measure 'Top Segments Revenue Share' = CALCULATE ( [% of Revenue], dim_customer[segment] IN { "Champions", "Loyal" } )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 3 RFM
+		lineageTag: 2733bed4-1b29-577d-9025-9537200b2a9e
+
+	measure 'Delivered Orders' = CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[order_status] = "delivered" )
+		formatString: #,0
+		displayFolder: 4 Delivery
+		lineageTag: 56defc80-f76a-542e-9f00-8e405ff67c09
+
+	measure 'Late Orders' = CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[order_status] = "delivered", fact_orders[is_late] = TRUE () )
+		formatString: #,0
+		displayFolder: 4 Delivery
+		lineageTag: 5e6809d1-8144-584e-8b33-fc649f69dffe
+
+	measure 'Late Rate %' = DIVIDE ( [Late Orders], [Delivered Orders] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 4 Delivery
+		lineageTag: d74ade52-30fe-546b-9dcb-315dd1fbf6a5
+
+	measure 'Avg Delivery Days' = CALCULATE ( AVERAGE ( fact_orders[delivery_days] ), fact_orders[order_status] = "delivered" )
+		formatString: #,0.0
+		displayFolder: 4 Delivery
+		lineageTag: 42ba2b5e-a7d2-5e66-93c6-1633d35a91c7
+
+	measure 'Avg Review Score' = AVERAGE ( fact_orders[review_score] )
+		formatString: #,0.00
+		displayFolder: 4 Delivery
+		lineageTag: 3bb9808b-f7ea-5507-9e82-5cbf0a7236c1
+
+	measure 'Low Reviews %' = DIVIDE ( CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[review_score] <= 2, NOT ISBLANK ( fact_orders[review_score] ) ), CALCULATE ( COUNTROWS ( fact_orders ), NOT ISBLANK ( fact_orders[review_score] ) ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 4 Delivery
+		lineageTag: 2ae5dc71-0d54-52fa-aced-acc3f928e082
+
+	measure 'Payment Mismatches' = CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[payment_mismatch] = TRUE () )
+		formatString: #,0
+		displayFolder: 4 Delivery
+		lineageTag: dc813f23-93eb-5006-bc50-05243f0a8340
+
+	measure 'Item Revenue' = CALCULATE ( SUM ( fact_order_items[line_revenue] ), fact_order_items[order_status] <> "canceled" )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 5 Products
+		lineageTag: ea12b70c-f6a0-5736-8173-c76e2c980d5d
+
+	measure 'Gross Margin' = CALCULATE ( SUM ( fact_order_items[line_margin] ), fact_order_items[order_status] <> "canceled" )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 5 Products
+		lineageTag: 5df33f04-0fd0-5f21-9019-a1cfaa459bfc
+
+	measure 'Gross Margin %' = DIVIDE ( [Gross Margin], [Item Revenue] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 5 Products
+		lineageTag: 2ac58614-c629-5237-a485-4bb41e7b3117
+
+	measure 'Units Sold' = CALCULATE ( SUM ( fact_order_items[quantity] ), fact_order_items[order_status] <> "canceled" )
+		formatString: #,0
+		displayFolder: 5 Products
+		lineageTag: f6309313-5778-5738-ae77-4caad37198d5
+
+	measure 'Item Revenue PY' = CALCULATE ( [Item Revenue], SAMEPERIODLASTYEAR ( dim_date[date] ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 5 Products
+		lineageTag: 18db1176-6c0a-5ea3-ac8d-1381b0b868a8
+
+	measure 'Category Revenue Share' = DIVIDE ( [Item Revenue], CALCULATE ( [Item Revenue], REMOVEFILTERS ( dim_product ) ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 5 Products
+		lineageTag: 5b418aa5-5c28-5afc-b984-b4e939248dc3
+
+	measure 'Product Rank' = IF ( ISINSCOPE ( dim_product[product_name] ), RANKX ( ALLSELECTED ( dim_product[product_name], dim_product[category] ), [Item Revenue], , DESC, DENSE ) )
+		formatString: #,0
+		displayFolder: 5 Products
+		lineageTag: 7d31507c-b0d8-5d65-8b0b-331eec9e9154
+
+	measure 'Selected Year' = MAX ( dim_date[year] )
+		formatString: 0
+		isHidden
+		displayFolder: 9 Helpers
+		lineageTag: 74f275d3-4e79-5836-8cde-4778a97a154e
+
+	measure 'Revenue (Latest Year)' = VAR y = [Selected Year] RETURN CALCULATE ( [Revenue], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: f6883243-2f64-5926-bc32-3e06ad3c9c4c
+
+	measure 'Revenue (Prior Year)' = VAR y = [Selected Year] - 1 RETURN CALCULATE ( [Revenue], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 8b6d3cb2-e8a5-53d1-9442-a0fcc9833ecb
+
+	measure 'Revenue vs PY' = DIVIDE ( [Revenue (Latest Year)] - [Revenue (Prior Year)], [Revenue (Prior Year)] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 6 Year over year
+		lineageTag: 1a02d030-6945-5dac-804c-53f650d70937
+
+	measure 'Revenue vs PY Label' = IF ( ISBLANK ( [Revenue (Prior Year)] ) || ISBLANK ( [Revenue (Latest Year)] ), "No prior year to compare", FORMAT ( [Revenue vs PY], "▲ 0.0%;▼ 0.0%;● 0.0%" ) & "   " & [Selected Year] & " vs " & ( [Selected Year] - 1 ) )
+		displayFolder: 6 Year over year
+		lineageTag: 09b40d98-67da-5ca2-848f-27c9fdd50d99
+
+	measure 'Revenue vs PY Color' = IF ( ISBLANK ( [Revenue (Prior Year)] ) || ISBLANK ( [Revenue (Latest Year)] ), "#94A3B8", IF ( [Revenue vs PY] >= 0, "#0E7C86", "#B5523B" ) )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: fde6a873-9690-54b6-af99-8557a9c094c7
+
+	measure 'Orders (Latest Year)' = VAR y = [Selected Year] RETURN CALCULATE ( [Orders], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 6dbb27ab-7df2-5a08-a350-3f1e86f43eb5
+
+	measure 'Orders (Prior Year)' = VAR y = [Selected Year] - 1 RETURN CALCULATE ( [Orders], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: e89e364e-f6b9-55ce-a253-3ef3c85fde54
+
+	measure 'Orders vs PY' = DIVIDE ( [Orders (Latest Year)] - [Orders (Prior Year)], [Orders (Prior Year)] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 6 Year over year
+		lineageTag: d5ba2cc6-e26a-5dc1-884e-9581b9eee306
+
+	measure 'Orders vs PY Label' = IF ( ISBLANK ( [Orders (Prior Year)] ) || ISBLANK ( [Orders (Latest Year)] ), "No prior year to compare", FORMAT ( [Orders vs PY], "▲ 0.0%;▼ 0.0%;● 0.0%" ) & "   " & [Selected Year] & " vs " & ( [Selected Year] - 1 ) )
+		displayFolder: 6 Year over year
+		lineageTag: c974dcc5-ae7e-512b-b230-c915447ad5ec
+
+	measure 'Orders vs PY Color' = IF ( ISBLANK ( [Orders (Prior Year)] ) || ISBLANK ( [Orders (Latest Year)] ), "#94A3B8", IF ( [Orders vs PY] >= 0, "#0E7C86", "#B5523B" ) )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: 918e7b62-e754-5ea9-beeb-c71b381e28e3
+
+	measure 'Customers (Latest Year)' = VAR y = [Selected Year] RETURN CALCULATE ( [Customers], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 4526ddcb-65b5-53dc-b42a-635fcbbb3221
+
+	measure 'Customers (Prior Year)' = VAR y = [Selected Year] - 1 RETURN CALCULATE ( [Customers], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: bede77a7-d9e1-5b1c-bede-ab0b22bad799
+
+	measure 'Customers vs PY' = DIVIDE ( [Customers (Latest Year)] - [Customers (Prior Year)], [Customers (Prior Year)] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 6 Year over year
+		lineageTag: 77f6dd40-4432-580f-abf1-12abc65a0c75
+
+	measure 'Customers vs PY Label' = IF ( ISBLANK ( [Customers (Prior Year)] ) || ISBLANK ( [Customers (Latest Year)] ), "No prior year to compare", FORMAT ( [Customers vs PY], "▲ 0.0%;▼ 0.0%;● 0.0%" ) & "   " & [Selected Year] & " vs " & ( [Selected Year] - 1 ) )
+		displayFolder: 6 Year over year
+		lineageTag: 62d42db5-4286-5f8d-8531-7dce47139af8
+
+	measure 'Customers vs PY Color' = IF ( ISBLANK ( [Customers (Prior Year)] ) || ISBLANK ( [Customers (Latest Year)] ), "#94A3B8", IF ( [Customers vs PY] >= 0, "#0E7C86", "#B5523B" ) )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: 377bfc92-628e-5df3-b35b-191dcf16c20a
+
+	measure 'Avg Order Value (Latest Year)' = VAR y = [Selected Year] RETURN CALCULATE ( [Avg Order Value], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 8ed71230-f3b0-5fd7-a418-9f4acc5259ba
+
+	measure 'Avg Order Value (Prior Year)' = VAR y = [Selected Year] - 1 RETURN CALCULATE ( [Avg Order Value], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 3eb3d7ec-3867-5246-8fc7-ba504e89a091
+
+	measure 'Avg Order Value vs PY' = DIVIDE ( [Avg Order Value (Latest Year)] - [Avg Order Value (Prior Year)], [Avg Order Value (Prior Year)] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 6 Year over year
+		lineageTag: 1ba403b2-ed9d-58e0-93d4-9d5659964c04
+
+	measure 'Avg Order Value vs PY Label' = IF ( ISBLANK ( [Avg Order Value (Prior Year)] ) || ISBLANK ( [Avg Order Value (Latest Year)] ), "No prior year to compare", FORMAT ( [Avg Order Value vs PY], "▲ 0.0%;▼ 0.0%;● 0.0%" ) & "   " & [Selected Year] & " vs " & ( [Selected Year] - 1 ) )
+		displayFolder: 6 Year over year
+		lineageTag: 29d3cf72-887e-54d4-8c32-e2f612d620d5
+
+	measure 'Avg Order Value vs PY Color' = IF ( ISBLANK ( [Avg Order Value (Prior Year)] ) || ISBLANK ( [Avg Order Value (Latest Year)] ), "#94A3B8", IF ( [Avg Order Value vs PY] >= 0, "#0E7C86", "#B5523B" ) )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: 811b9c87-fae4-57ea-9c7e-88d4154ce585
+
+	measure 'Repeat Rate % (Latest Year)' = VAR y = [Selected Year] RETURN CALCULATE ( [Repeat Rate %], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 103d857e-eb1b-5326-979a-c9f1667bba28
+
+	measure 'Repeat Rate % (Prior Year)' = VAR y = [Selected Year] - 1 RETURN CALCULATE ( [Repeat Rate %], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: e9ae0500-9379-5bb1-afa5-3baed753f2ee
+
+	measure 'Repeat Rate % vs PY' = ( [Repeat Rate % (Latest Year)] - [Repeat Rate % (Prior Year)] ) * 100
+		formatString: #,0.0
+		displayFolder: 6 Year over year
+		lineageTag: 8f7cca03-87b3-5dab-8329-63a96cffd3f6
+
+	measure 'Repeat Rate % vs PY Label' = IF ( ISBLANK ( [Repeat Rate % (Prior Year)] ) || ISBLANK ( [Repeat Rate % (Latest Year)] ), "No prior year to compare", FORMAT ( [Repeat Rate % vs PY], "▲ 0.0 pts;▼ 0.0 pts;● 0.0 pts" ) & "   " & [Selected Year] & " vs " & ( [Selected Year] - 1 ) )
+		displayFolder: 6 Year over year
+		lineageTag: bdf1a255-7e75-560c-aea1-cad5c652fb3c
+
+	measure 'Repeat Rate % vs PY Color' = IF ( ISBLANK ( [Repeat Rate % (Prior Year)] ) || ISBLANK ( [Repeat Rate % (Latest Year)] ), "#94A3B8", IF ( [Repeat Rate % vs PY] >= 0, "#0E7C86", "#B5523B" ) )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: e08549d3-3191-5ed4-b9b5-035ca033a496
+
+	measure 'Late Rate % (Latest Year)' = VAR y = [Selected Year] RETURN CALCULATE ( [Late Rate %], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: f2122db7-10d1-5841-a700-0dd2d84900b1
+
+	measure 'Late Rate % (Prior Year)' = VAR y = [Selected Year] - 1 RETURN CALCULATE ( [Late Rate %], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 7a9a674a-add6-5ba9-8abd-a2764c0e21f9
+
+	measure 'Late Rate % vs PY' = ( [Late Rate % (Latest Year)] - [Late Rate % (Prior Year)] ) * 100
+		formatString: #,0.0
+		displayFolder: 6 Year over year
+		lineageTag: a8cfa3cf-ec1a-5c33-b486-eb4967615275
+
+	measure 'Late Rate % vs PY Label' = IF ( ISBLANK ( [Late Rate % (Prior Year)] ) || ISBLANK ( [Late Rate % (Latest Year)] ), "No prior year to compare", FORMAT ( [Late Rate % vs PY], "▲ 0.0 pts;▼ 0.0 pts;● 0.0 pts" ) & "   " & [Selected Year] & " vs " & ( [Selected Year] - 1 ) )
+		displayFolder: 6 Year over year
+		lineageTag: eb87038c-5261-5b19-9418-5d2e814a56d7
+
+	measure 'Late Rate % vs PY Color' = IF ( ISBLANK ( [Late Rate % (Prior Year)] ) || ISBLANK ( [Late Rate % (Latest Year)] ), "#94A3B8", IF ( [Late Rate % vs PY] >= 0, "#B5523B", "#0E7C86" ) )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: 63aa8068-d0c8-5552-bd0c-f8354b72fb59
+
+	measure 'Avg Delivery Days (Latest Year)' = VAR y = [Selected Year] RETURN CALCULATE ( [Avg Delivery Days], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 32c1dac2-69c2-5199-941e-aaa82341484e
+
+	measure 'Avg Delivery Days (Prior Year)' = VAR y = [Selected Year] - 1 RETURN CALCULATE ( [Avg Delivery Days], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 362996e3-16fa-513c-a08f-4c24c88407f7
+
+	measure 'Avg Delivery Days vs PY' = [Avg Delivery Days (Latest Year)] - [Avg Delivery Days (Prior Year)]
+		formatString: #,0.0
+		displayFolder: 6 Year over year
+		lineageTag: 02fb6a4c-c895-5a64-bf2f-200761dcce49
+
+	measure 'Avg Delivery Days vs PY Label' = IF ( ISBLANK ( [Avg Delivery Days (Prior Year)] ) || ISBLANK ( [Avg Delivery Days (Latest Year)] ), "No prior year to compare", FORMAT ( [Avg Delivery Days vs PY], "▲ 0.0 days;▼ 0.0 days;● 0.0 days" ) & "   " & [Selected Year] & " vs " & ( [Selected Year] - 1 ) )
+		displayFolder: 6 Year over year
+		lineageTag: 16114c85-89b5-5f36-9744-d804f27a44fd
+
+	measure 'Avg Delivery Days vs PY Color' = IF ( ISBLANK ( [Avg Delivery Days (Prior Year)] ) || ISBLANK ( [Avg Delivery Days (Latest Year)] ), "#94A3B8", IF ( [Avg Delivery Days vs PY] >= 0, "#B5523B", "#0E7C86" ) )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: 5b3e9746-2c1e-5f73-9879-aa37c85b7148
+
+	measure 'Avg Review Score (Latest Year)' = VAR y = [Selected Year] RETURN CALCULATE ( [Avg Review Score], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 2167b5d7-deb3-50d9-bec4-caaf6472b701
+
+	measure 'Avg Review Score (Prior Year)' = VAR y = [Selected Year] - 1 RETURN CALCULATE ( [Avg Review Score], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: f68ac6f5-eb20-55cf-96d6-5073026d835b
+
+	measure 'Avg Review Score vs PY' = [Avg Review Score (Latest Year)] - [Avg Review Score (Prior Year)]
+		formatString: #,0.0
+		displayFolder: 6 Year over year
+		lineageTag: 65850a7f-ce7e-5ec8-8720-b30ae8ef9b73
+
+	measure 'Avg Review Score vs PY Label' = IF ( ISBLANK ( [Avg Review Score (Prior Year)] ) || ISBLANK ( [Avg Review Score (Latest Year)] ), "No prior year to compare", FORMAT ( [Avg Review Score vs PY], "▲ 0.00;▼ 0.00;● 0.00" ) & "   " & [Selected Year] & " vs " & ( [Selected Year] - 1 ) )
+		displayFolder: 6 Year over year
+		lineageTag: 2b473f91-d019-5a7c-9da1-81007053e46c
+
+	measure 'Avg Review Score vs PY Color' = IF ( ISBLANK ( [Avg Review Score (Prior Year)] ) || ISBLANK ( [Avg Review Score (Latest Year)] ), "#94A3B8", IF ( [Avg Review Score vs PY] >= 0, "#0E7C86", "#B5523B" ) )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: ba7a87d9-961a-5255-8d3e-3ac466246b99
+
+	measure 'Low Reviews % (Latest Year)' = VAR y = [Selected Year] RETURN CALCULATE ( [Low Reviews %], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 69a08f89-6c12-5faa-a18f-050f21733365
+
+	measure 'Low Reviews % (Prior Year)' = VAR y = [Selected Year] - 1 RETURN CALCULATE ( [Low Reviews %], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 1cf1632b-0384-548c-9e62-cb640c6a784a
+
+	measure 'Low Reviews % vs PY' = ( [Low Reviews % (Latest Year)] - [Low Reviews % (Prior Year)] ) * 100
+		formatString: #,0.0
+		displayFolder: 6 Year over year
+		lineageTag: e2f680eb-98c6-55cb-86f2-c691c20bfa82
+
+	measure 'Low Reviews % vs PY Label' = IF ( ISBLANK ( [Low Reviews % (Prior Year)] ) || ISBLANK ( [Low Reviews % (Latest Year)] ), "No prior year to compare", FORMAT ( [Low Reviews % vs PY], "▲ 0.0 pts;▼ 0.0 pts;● 0.0 pts" ) & "   " & [Selected Year] & " vs " & ( [Selected Year] - 1 ) )
+		displayFolder: 6 Year over year
+		lineageTag: 9f822608-612a-588f-b6ca-dfdef35a4818
+
+	measure 'Low Reviews % vs PY Color' = IF ( ISBLANK ( [Low Reviews % (Prior Year)] ) || ISBLANK ( [Low Reviews % (Latest Year)] ), "#94A3B8", IF ( [Low Reviews % vs PY] >= 0, "#B5523B", "#0E7C86" ) )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: c8716d74-84eb-5a84-bcd4-bee6e8270185
+
+	measure 'Item Revenue (Latest Year)' = VAR y = [Selected Year] RETURN CALCULATE ( [Item Revenue], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 3c1d1f4d-2d70-5599-9ff2-3390a9d35081
+
+	measure 'Item Revenue (Prior Year)' = VAR y = [Selected Year] - 1 RETURN CALCULATE ( [Item Revenue], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: e17677f2-9836-53d4-a968-eecd4ce2f104
+
+	measure 'Item Revenue vs PY' = DIVIDE ( [Item Revenue (Latest Year)] - [Item Revenue (Prior Year)], [Item Revenue (Prior Year)] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 6 Year over year
+		lineageTag: bb98af2e-9bef-5569-b584-fffbaf66e3a3
+
+	measure 'Item Revenue vs PY Label' = IF ( ISBLANK ( [Item Revenue (Prior Year)] ) || ISBLANK ( [Item Revenue (Latest Year)] ), "No prior year to compare", FORMAT ( [Item Revenue vs PY], "▲ 0.0%;▼ 0.0%;● 0.0%" ) & "   " & [Selected Year] & " vs " & ( [Selected Year] - 1 ) )
+		displayFolder: 6 Year over year
+		lineageTag: 781f18d1-2ad2-550b-af48-36099ab69522
+
+	measure 'Item Revenue vs PY Color' = IF ( ISBLANK ( [Item Revenue (Prior Year)] ) || ISBLANK ( [Item Revenue (Latest Year)] ), "#94A3B8", IF ( [Item Revenue vs PY] >= 0, "#0E7C86", "#B5523B" ) )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: 80c7ff72-cfb4-59d7-9425-bd1d96b9b47a
+
+	measure 'Gross Margin (Latest Year)' = VAR y = [Selected Year] RETURN CALCULATE ( [Gross Margin], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: f26f59c5-7702-515b-995e-fc68e7d136c6
+
+	measure 'Gross Margin (Prior Year)' = VAR y = [Selected Year] - 1 RETURN CALCULATE ( [Gross Margin], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 9a4414c2-b8fa-54e8-b1e2-c962a4c99a55
+
+	measure 'Gross Margin vs PY' = DIVIDE ( [Gross Margin (Latest Year)] - [Gross Margin (Prior Year)], [Gross Margin (Prior Year)] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 6 Year over year
+		lineageTag: f5102a17-57c3-5fc0-bd16-1ddf03fe9d12
+
+	measure 'Gross Margin vs PY Label' = IF ( ISBLANK ( [Gross Margin (Prior Year)] ) || ISBLANK ( [Gross Margin (Latest Year)] ), "No prior year to compare", FORMAT ( [Gross Margin vs PY], "▲ 0.0%;▼ 0.0%;● 0.0%" ) & "   " & [Selected Year] & " vs " & ( [Selected Year] - 1 ) )
+		displayFolder: 6 Year over year
+		lineageTag: ee259780-b450-5ac7-9526-db601f715d0f
+
+	measure 'Gross Margin vs PY Color' = IF ( ISBLANK ( [Gross Margin (Prior Year)] ) || ISBLANK ( [Gross Margin (Latest Year)] ), "#94A3B8", IF ( [Gross Margin vs PY] >= 0, "#0E7C86", "#B5523B" ) )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: ba4afbc2-ca5c-58d6-bd41-15dc262682a5
+
+	measure 'Gross Margin % (Latest Year)' = VAR y = [Selected Year] RETURN CALCULATE ( [Gross Margin %], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: c8124e25-3782-5dcf-8567-e83e63bd0a1b
+
+	measure 'Gross Margin % (Prior Year)' = VAR y = [Selected Year] - 1 RETURN CALCULATE ( [Gross Margin %], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 6ef5def2-7afd-5192-bbd5-7d1ec3efa94e
+
+	measure 'Gross Margin % vs PY' = ( [Gross Margin % (Latest Year)] - [Gross Margin % (Prior Year)] ) * 100
+		formatString: #,0.0
+		displayFolder: 6 Year over year
+		lineageTag: a39cc7e5-8671-572c-98e9-5318e0e25349
+
+	measure 'Gross Margin % vs PY Label' = IF ( ISBLANK ( [Gross Margin % (Prior Year)] ) || ISBLANK ( [Gross Margin % (Latest Year)] ), "No prior year to compare", FORMAT ( [Gross Margin % vs PY], "▲ 0.0 pts;▼ 0.0 pts;● 0.0 pts" ) & "   " & [Selected Year] & " vs " & ( [Selected Year] - 1 ) )
+		displayFolder: 6 Year over year
+		lineageTag: 7ebd938f-9584-5b60-add1-c275dcdd8a62
+
+	measure 'Gross Margin % vs PY Color' = IF ( ISBLANK ( [Gross Margin % (Prior Year)] ) || ISBLANK ( [Gross Margin % (Latest Year)] ), "#94A3B8", IF ( [Gross Margin % vs PY] >= 0, "#0E7C86", "#B5523B" ) )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: cec51f55-03b1-5baf-8ca0-74dc4ba84df6
+
+	measure 'Units Sold (Latest Year)' = VAR y = [Selected Year] RETURN CALCULATE ( [Units Sold], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: ab6dfb1e-9a8b-5ed2-98d0-cc5e290766e0
+
+	measure 'Units Sold (Prior Year)' = VAR y = [Selected Year] - 1 RETURN CALCULATE ( [Units Sold], REMOVEFILTERS ( dim_date ), dim_date[year] = y )
+		isHidden
+		displayFolder: 6 Year over year
+		lineageTag: 383dabef-facf-58f1-b3b6-6a1fcab40af3
+
+	measure 'Units Sold vs PY' = DIVIDE ( [Units Sold (Latest Year)] - [Units Sold (Prior Year)], [Units Sold (Prior Year)] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 6 Year over year
+		lineageTag: 12679cbe-cf72-5719-86c3-9a7420a79df6
+
+	measure 'Units Sold vs PY Label' = IF ( ISBLANK ( [Units Sold (Prior Year)] ) || ISBLANK ( [Units Sold (Latest Year)] ), "No prior year to compare", FORMAT ( [Units Sold vs PY], "▲ 0.0%;▼ 0.0%;● 0.0%" ) & "   " & [Selected Year] & " vs " & ( [Selected Year] - 1 ) )
+		displayFolder: 6 Year over year
+		lineageTag: 891c8db1-6fca-5fbe-bb02-72ebf9c96834
+
+	measure 'Units Sold vs PY Color' = IF ( ISBLANK ( [Units Sold (Prior Year)] ) || ISBLANK ( [Units Sold (Latest Year)] ), "#94A3B8", IF ( [Units Sold vs PY] >= 0, "#0E7C86", "#B5523B" ) )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: df474755-696d-5dc0-be45-aaa3d94c6cec
+
+	measure 'Item Revenue Change vs PY' = [Item Revenue (Latest Year)] - [Item Revenue (Prior Year)]
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 6 Year over year
+		lineageTag: 4feca2cf-c4e5-546c-9f33-4a0bb3ed7a68
+
+	measure 'Filter Context' = IF ( ISFILTERED ( dim_date[year] ), CONCATENATEX ( VALUES ( dim_date[year] ), dim_date[year], ", ", dim_date[year], ASC ), "2023 – 2025" ) & "   ·   " & IF ( ISFILTERED ( dim_customer[region] ), CONCATENATEX ( VALUES ( dim_customer[region] ), dim_customer[region], ", ", dim_customer[region], ASC ), "All regions" ) & "   ·   " & IF ( ISFILTERED ( dim_customer[acquisition_channel] ), CONCATENATEX ( VALUES ( dim_customer[acquisition_channel] ), dim_customer[acquisition_channel], ", ", dim_customer[acquisition_channel], ASC ), "All channels" ) & "   ·   " & IF ( ISFILTERED ( dim_customer[segment] ), CONCATENATEX ( VALUES ( dim_customer[segment] ), dim_customer[segment], ", ", dim_customer[segment], ASC ), "All segments" )
+		displayFolder: 7 Dynamic text
+		lineageTag: ea4c62a7-e29a-5a6a-99a1-f814b237f4d5
+
+	measure 'Blank Text' = ""
+		isHidden
+		displayFolder: 9 Helpers
+		lineageTag: c52c75a0-e64f-5f67-a7f7-88d8db7235b4
+
+	measure 'Note Lifetime' = "Lifetime, to Dec 2025"
+		isHidden
+		displayFolder: 9 Helpers
+		lineageTag: 18e22659-b942-5319-beb5-596170c15202
+
+	measure 'Note First Orders' = "First orders before Jul 2025"
+		isHidden
+		displayFolder: 9 Helpers
+		lineageTag: 951282a7-eb80-5b4a-96a4-a4fa51b4d293
+
+	measure 'Note Share' = "Of all product revenue"
+		isHidden
+		displayFolder: 9 Helpers
+		lineageTag: ab4ade1b-8af1-5ad8-b4e4-78d7e54ce633
+
+	measure 'Title Trend' = "Revenue by month vs prior year   ·   " & [Revenue vs PY Label]
+		displayFolder: 7 Dynamic text
+		lineageTag: e24b4bf6-df06-57de-ad71-d76e9899da90
+
+	measure 'Title Waterfall' = "What moved revenue in " & [Selected Year] & "?  Change vs " & ( [Selected Year] - 1 ) & " by category"
+		displayFolder: 7 Dynamic text
+		lineageTag: b2a42fe6-3f03-57ce-980e-6344b79a0493
+
+	measure 'Title Category' = SELECTEDVALUE ( dim_product[category], "Multiple categories" ) & "  ·  category detail"
+		displayFolder: 7 Dynamic text
+		lineageTag: 10cfeda3-2f40-5c00-a7cd-74125fb16f3c
+
+	measure 'Title Category Trend' = "Monthly revenue: " & SELECTEDVALUE ( dim_product[category], "selected categories" ) & " vs prior year"
+		displayFolder: 7 Dynamic text
+		lineageTag: 14678aa0-8d5c-5050-bd57-3a61a660ac68
+
+	measure 'Title Tooltip' = FORMAT ( MAX ( dim_date[month_start] ), "mmmm yyyy" )
+		displayFolder: 7 Dynamic text
+		lineageTag: b54fb1f9-85c6-5a69-a20e-4721ccd69676
+
+	measure 'Review Color' = SWITCH ( TRUE (), ISBLANK ( [Avg Review Score] ), "#94A3B8", [Avg Review Score] < 3, "#B5523B", [Avg Review Score] < 4, "#D08C2E", "#0E7C86" )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: 4d017a27-ff05-548d-ad9f-5d81aa5def31
+
+	measure 'Came Back Color' = SWITCH ( TRUE (), [Came Back %] < 0.15, "#B5523B", [Came Back %] < 0.27, "#D08C2E", "#0E7C86" )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: fcadc3d3-98d8-587d-b211-a653c5de432e
+
+	measure 'Late Color' = SWITCH ( TRUE (), [Late Rate %] >= 0.2, "#B5523B", [Late Rate %] >= 0.12, "#D08C2E", "#0E7C86" )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: 7923f4f2-93ec-56d5-a7a6-a643e2a2bf42
+
+	measure 'Late Heat' = SWITCH ( TRUE (), ISBLANK ( [Late Rate %] ), BLANK (), [Late Rate %] >= 0.2, "#F3D7CF", [Late Rate %] >= 0.12, "#F7E6CC", "#D3ECEE" )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: c688d0e2-301f-53f5-a6d7-5e4a438cfbaf
+
+	measure 'Margin Color' = SWITCH ( TRUE (), [Gross Margin %] < 0.4, "#B5523B", [Gross Margin %] < 0.47, "#D08C2E", "#0E7C86" )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: 05d3e87b-dc30-54a3-b6fa-f6023bac03c2
+
+	measure 'YoY Color' = SWITCH ( TRUE (), ISBLANK ( [Revenue vs PY] ), "#94A3B8", [Revenue vs PY] >= 0, "#0E7C86", "#B5523B" )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: 5fe02ab5-6af5-56e9-a7fe-5f56135e16b2
+
+	measure 'Item YoY Color' = SWITCH ( TRUE (), ISBLANK ( [Item Revenue vs PY] ), "#94A3B8", [Item Revenue vs PY] >= 0, "#0E7C86", "#B5523B" )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: 9631bf91-c991-5d60-bfa7-c7be6f466696
+
+	measure 'RF Heat' = VAR v = [Avg Lifetime Spend] RETURN SWITCH ( TRUE (), ISBLANK ( v ), BLANK (), v >= 700, "#0B1F3A", v >= 400, "#1F4E79", v >= 250, "#5C88B5", v >= 150, "#B7CCE3", "#EAF0F7" )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: 4da1e9a0-e985-5e9a-9e0f-0162ef308ae0
+
+	measure 'RF Heat Font' = IF ( [Avg Lifetime Spend] >= 250, "#FFFFFF", "#0F172A" )
+		isHidden
+		displayFolder: 8 Formatting
+		lineageTag: 3813b0fe-9152-5e48-abaf-9f6daf570bef
+
+	column Value
+		dataType: string
+		isHidden
+		lineageTag: 43a59b12-e57a-5794-9df3-d192c9f4d0bf
+		summarizeBy: none
+		sourceColumn: Value
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Measures = m
+		mode: import
+		source =
+				#table(type table [Value = text], {})
+
+	annotation PBI_ResultType = Table

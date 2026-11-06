@@ -1,57 +1,57 @@
 table dim_product
-	lineageTag: bad742c5-8c4a-5c58-8456-47df67af681a
+	lineageTag: badd8ecd-292c-5df7-b243-dc4e93c3acda
 
 	column product_id
 		dataType: string
 		isHidden
-		lineageTag: 87c847da-e422-5e1c-ac55-85334c2a379a
+		lineageTag: 7883de47-a4de-541c-a83a-af13b8b18b9b
 		summarizeBy: none
 		sourceColumn: product_id
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column product_name
 		dataType: string
-		lineageTag: 3d4fe2a0-d5e0-5c1e-9ffb-065cc3c0d722
+		lineageTag: 25a4ae29-d4fb-5d76-834d-3d323a7a7873
 		summarizeBy: none
 		sourceColumn: product_name
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column category
 		dataType: string
-		lineageTag: dbb6f28e-b419-5ff6-93d0-c3ee81460581
+		lineageTag: f85e6b2d-98d9-5a1b-b26c-89d06ecbb66b
 		summarizeBy: none
 		sourceColumn: category
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column list_price
 		dataType: double
 		isHidden
-		lineageTag: a1976dbf-938a-5ceb-89da-828b720cc31e
-		summarizeBy: sum
+		lineageTag: 991353e0-17c0-5913-a8aa-cce8cdcaffe0
+		summarizeBy: none
 		sourceColumn: list_price
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column unit_cost
 		dataType: double
 		isHidden
-		lineageTag: bc087338-fc0d-5ac0-ab46-f0428e417bb3
-		summarizeBy: sum
+		lineageTag: 44fb77c6-b257-5706-84b3-c7d9814ec369
+		summarizeBy: none
 		sourceColumn: unit_cost
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column weight_kg
 		dataType: double
 		isHidden
-		lineageTag: 1f376c80-e720-5fd1-b38d-3a9134477187
-		summarizeBy: sum
+		lineageTag: ca3c95b8-ea58-5b6e-be50-c452388ac9ea
+		summarizeBy: none
 		sourceColumn: weight_kg
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	partition dim_product = m
 		mode: import

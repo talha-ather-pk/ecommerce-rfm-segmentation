@@ -1,64 +1,149 @@
 table dim_customer
-	lineageTag: 54884e43-0eff-5418-ae98-e293ad7e72b5
+	lineageTag: 4dc4d74d-975a-5a5d-8d30-c06a541486aa
 
 	column customer_id
 		dataType: string
 		isHidden
-		lineageTag: c95d3f88-416d-5282-8674-ae1c690a4960
+		lineageTag: d66dfb7e-2f5d-56fa-9e9a-42682adfdaec
 		summarizeBy: none
 		sourceColumn: customer_id
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column city
 		dataType: string
-		lineageTag: 07cdda77-0c36-5b1a-baf5-233c5a8b7c39
+		lineageTag: 313461eb-e775-561d-bc2f-d867e8e116bd
 		summarizeBy: none
 		sourceColumn: city
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column state_code
 		dataType: string
-		lineageTag: 47010ab5-498c-5ca0-ab80-b3a38e88127e
+		lineageTag: ee2c9fae-69c5-5f06-873e-be75371a5db6
 		summarizeBy: none
 		sourceColumn: state_code
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column state_name
 		dataType: string
 		dataCategory: StateOrProvince
-		lineageTag: 83204203-45d3-5c5a-9099-f0a5772cbc9d
+		lineageTag: ca631ede-f1d9-5c03-8901-a0a79435c1a8
 		summarizeBy: none
 		sourceColumn: state_name
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column region
 		dataType: string
-		lineageTag: 516224aa-51c6-525a-a09d-d896abf04b58
+		lineageTag: dbdcd456-2a47-57f3-b6db-47081e8cd081
 		summarizeBy: none
 		sourceColumn: region
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column acquisition_channel
 		dataType: string
-		lineageTag: 763edf46-610e-514c-a203-bf106e5e24b7
+		lineageTag: 8d89bb61-92f3-58ed-8a85-9fb2e36945bc
 		summarizeBy: none
 		sourceColumn: acquisition_channel
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column signup_date
 		dataType: dateTime
-		formatString: Short Date
-		lineageTag: 3474bb67-6150-5d58-9ee1-c32e3a458c34
+		isHidden
+		formatString: dd mmm yyyy
+		lineageTag: ca758470-b242-571c-881d-859c0c27b9fa
 		summarizeBy: none
 		sourceColumn: signup_date
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
+
+	column recency_days
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 778506a0-4eaf-5402-803f-c6d0ac1eb47f
+		summarizeBy: none
+		sourceColumn: recency_days
+
+		annotation SummarizationSetBy = User
+
+	column frequency
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: df00ecb0-90c6-5b53-aa08-dda8ccb927fc
+		summarizeBy: none
+		sourceColumn: frequency
+
+		annotation SummarizationSetBy = User
+
+	column monetary
+		dataType: double
+		isHidden
+		lineageTag: e477fffc-90a0-59af-9a3a-4df420cafaa9
+		summarizeBy: none
+		sourceColumn: monetary
+
+		annotation SummarizationSetBy = User
+
+	column r_score
+		dataType: int64
+		formatString: 0
+		lineageTag: ec64c7f0-e86f-53b1-8e8c-bb9cf96a94c9
+		summarizeBy: none
+		sourceColumn: r_score
+
+		annotation SummarizationSetBy = User
+
+	column f_score
+		dataType: int64
+		formatString: 0
+		lineageTag: 1671afda-8834-53ed-a9fc-ad6b9d49c5e4
+		summarizeBy: none
+		sourceColumn: f_score
+
+		annotation SummarizationSetBy = User
+
+	column m_score
+		dataType: int64
+		formatString: 0
+		lineageTag: 80374baf-7972-57c1-9142-5cea58c715a1
+		summarizeBy: none
+		sourceColumn: m_score
+
+		annotation SummarizationSetBy = User
+
+	column rfm_code
+		dataType: string
+		isHidden
+		lineageTag: d7cdc369-5346-51d0-b2db-7b90722c4d08
+		summarizeBy: none
+		sourceColumn: rfm_code
+
+		annotation SummarizationSetBy = User
+
+	column segment_order
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b3cbdb9d-a5d5-5a43-9a4b-be9ec2922be5
+		summarizeBy: none
+		sourceColumn: segment_order
+
+		annotation SummarizationSetBy = User
+
+	column segment
+		dataType: string
+		sortByColumn: segment_order
+		lineageTag: 18aa4720-aa24-51c8-a5b3-c094582acced
+		summarizeBy: none
+		sourceColumn: segment
+
+		annotation SummarizationSetBy = User
 
 	partition dim_customer = m
 		mode: import
@@ -67,8 +152,13 @@ table dim_customer
 				    Source = Csv.Document(File.Contents(DataFolder & "dim_customer.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
 				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
 				    Blanks = Table.TransformColumns(Promoted, {}, each if _ = "" then null else _),
-				    Typed = Table.TransformColumnTypes(Blanks, {{"customer_id", type text}, {"city", type text}, {"state_code", type text}, {"state_name", type text}, {"region", type text}, {"acquisition_channel", type text}, {"signup_date", type date}}, "en-US")
+				    Typed = Table.TransformColumnTypes(Blanks, {{"customer_id", type text}, {"city", type text}, {"state_code", type text}, {"state_name", type text}, {"region", type text}, {"acquisition_channel", type text}, {"signup_date", type date}}, "en-US"),
+				    Joined = Table.NestedJoin(Typed, {"customer_id"}, RFM_Staging, {"customer_id"}, "rfm", JoinKind.LeftOuter),
+				    Expanded = Table.ExpandTableColumn(Joined, "rfm", {"recency_days", "frequency", "monetary", "r_score", "f_score", "m_score", "rfm_code", "segment_order", "segment"}),
+				    Retyped = Table.TransformColumnTypes(Expanded, {{"recency_days", Int64.Type}, {"frequency", Int64.Type}, {"monetary", type number}, {"r_score", Int64.Type}, {"f_score", Int64.Type}, {"m_score", Int64.Type}, {"rfm_code", type text}, {"segment_order", Int64.Type}, {"segment", type text}}),
+				    NoOrder = Table.ReplaceValue(Retyped, null, "No completed order", Replacer.ReplaceValue, {"segment"}),
+				    NoOrderSort = Table.ReplaceValue(NoOrder, null, 9, Replacer.ReplaceValue, {"segment_order"})
 				in
-				    Typed
+				    NoOrderSort
 
 	annotation PBI_ResultType = Table

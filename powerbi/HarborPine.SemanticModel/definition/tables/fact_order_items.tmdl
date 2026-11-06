@@ -1,141 +1,117 @@
 table fact_order_items
-	lineageTag: 7e23b716-caf4-5aab-af17-69fa7110c4fe
-
-	measure 'Item Revenue' = CALCULATE ( SUM ( fact_order_items[line_revenue] ), fact_order_items[order_status] <> "canceled" )
-		formatString: \$#,0;(\$#,0);\$#,0
-		displayFolder: Products
-		lineageTag: faa24e89-5b77-5d14-bc57-37b9a24e878e
-
-	measure 'Gross Margin' = CALCULATE ( SUM ( fact_order_items[line_margin] ), fact_order_items[order_status] <> "canceled" )
-		formatString: \$#,0;(\$#,0);\$#,0
-		displayFolder: Products
-		lineageTag: 5ee0e73d-65b4-53a2-8dad-7732b52f4f26
-
-	measure 'Gross Margin %' = DIVIDE ( [Gross Margin], [Item Revenue] )
-		formatString: 0.0%;-0.0%;0.0%
-		displayFolder: Products
-		lineageTag: 45254f17-68fe-5d49-95d7-7765e03ab61f
-
-	measure 'Units Sold' = CALCULATE ( SUM ( fact_order_items[quantity] ), fact_order_items[order_status] <> "canceled" )
-		formatString: #,0
-		displayFolder: Products
-		lineageTag: 3b0f8d05-5745-5d1c-8d8b-95c9fe5ef47c
-
-	measure 'Margin Color' = SWITCH ( TRUE (), [Gross Margin %] < 0.4, "#C0392B", [Gross Margin %] < 0.47, "#E67E22", "#2563EB" )
-		displayFolder: Formatting
-		lineageTag: fb81f4b3-3c60-5443-ba03-c24521db0b52
+	lineageTag: 72a402dd-bd1c-57f9-9182-8bf275d920e9
 
 	column order_id
 		dataType: string
 		isHidden
-		lineageTag: 5bac07ea-6ebc-5489-a07b-9727844d0a42
+		lineageTag: d6f308c1-82ee-5e28-b47f-25af55119cfb
 		summarizeBy: none
 		sourceColumn: order_id
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column order_item_id
 		dataType: int64
 		isHidden
 		formatString: 0
-		lineageTag: d98f6e46-81a9-5613-8efe-a34e5a7beea2
+		lineageTag: 0ea6dfce-bc75-5d18-82ac-57cba63e28d1
 		summarizeBy: none
 		sourceColumn: order_item_id
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column customer_id
 		dataType: string
 		isHidden
-		lineageTag: 6df6f4ce-fb4d-516a-9ecf-17bf40e94193
+		lineageTag: 64bf09d1-55c8-5875-a1ba-c67e0b69a026
 		summarizeBy: none
 		sourceColumn: customer_id
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column product_id
 		dataType: string
 		isHidden
-		lineageTag: 2e1bda2b-67f2-5e2d-8b4b-a6009ca76bc4
+		lineageTag: 44eb941c-4888-5154-8111-735f23e270e7
 		summarizeBy: none
 		sourceColumn: product_id
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column order_date
 		dataType: dateTime
 		isHidden
-		formatString: Short Date
-		lineageTag: 6e9d65fd-4f81-598e-a98a-caa44bce54f8
+		formatString: dd mmm yyyy
+		lineageTag: a38cebe8-2a21-5926-89bf-c881ec27d73d
 		summarizeBy: none
 		sourceColumn: order_date
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column order_status
 		dataType: string
 		isHidden
-		lineageTag: 388b6735-cff9-570e-80e7-aeeac790cf8a
+		lineageTag: 4d9a29f0-00d3-572e-934f-38e50afff6eb
 		summarizeBy: none
 		sourceColumn: order_status
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column quantity
 		dataType: int64
 		isHidden
 		formatString: 0
-		lineageTag: 76a3f760-a167-596f-8be5-a0b7c8832bc6
+		lineageTag: 50320e58-3c3f-5605-848f-2a250924bf1f
 		summarizeBy: none
 		sourceColumn: quantity
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column unit_price
 		dataType: double
 		isHidden
-		lineageTag: 52e06295-bc1b-5fb5-adc5-39e6c75b6527
-		summarizeBy: sum
+		lineageTag: 644415e9-0df2-514d-80f2-0b9fd026243a
+		summarizeBy: none
 		sourceColumn: unit_price
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column discount_pct
 		dataType: int64
 		isHidden
 		formatString: 0
-		lineageTag: 54d6aad5-f5a8-5f01-aa76-c81f855271e1
+		lineageTag: 708bccba-ec68-5a5d-8048-0b1df62a0875
 		summarizeBy: none
 		sourceColumn: discount_pct
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column line_revenue
 		dataType: double
 		isHidden
-		lineageTag: 15663b7c-ab15-532b-a89f-df8ebb9072a8
-		summarizeBy: sum
+		lineageTag: 586132db-2a1e-5800-8c96-34735020df63
+		summarizeBy: none
 		sourceColumn: line_revenue
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column line_cost
 		dataType: double
 		isHidden
-		lineageTag: 6aeb8193-8b82-5b04-aab8-609260c63cb1
-		summarizeBy: sum
+		lineageTag: 4e93e6b0-e7f1-584d-90f0-6ee6a6650aa6
+		summarizeBy: none
 		sourceColumn: line_cost
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	column line_margin
 		dataType: double
 		isHidden
-		lineageTag: 38dde069-c4aa-5df1-b4d4-7a8c3902ca27
-		summarizeBy: sum
+		lineageTag: 3d3037af-c817-5857-93ad-1b3000257ee1
+		summarizeBy: none
 		sourceColumn: line_margin
 
-		annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = User
 
 	partition fact_order_items = m
 		mode: import

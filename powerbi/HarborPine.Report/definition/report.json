@@ -9,6 +9,15 @@
         "page": "2.0.0"
       },
       "type": "SharedResources"
+    },
+    "customTheme": {
+      "name": "HarborPine_Executive.json",
+      "reportVersionAtImport": {
+        "visual": "2.4.0",
+        "report": "3.0.0",
+        "page": "2.0.0"
+      },
+      "type": "RegisteredResources"
     }
   },
   "resourcePackages": [
@@ -20,6 +29,17 @@
           "name": "CY26SU04",
           "path": "BaseThemes/CY26SU04.json",
           "type": "BaseTheme"
+        }
+      ]
+    },
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "HarborPine_Executive.json",
+          "path": "HarborPine_Executive.json",
+          "type": "CustomTheme"
         }
       ]
     }
@@ -43,6 +63,7 @@
     "useStylableVisualContainerHeader": true,
     "defaultDrillFilterOtherVisuals": true,
     "allowChangeFilterTypes": true,
-    "useEnhancedTooltips": true
+    "useEnhancedTooltips": true,
+    "exportDataMode": "AllowSummarized"
   }
 }
